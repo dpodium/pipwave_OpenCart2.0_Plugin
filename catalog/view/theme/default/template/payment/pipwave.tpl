@@ -8,7 +8,7 @@
     <span class="sr-only">Loading...</span>
 </div>
 <script type="text/javascript">
-    var pwconfig = < ?php echo $api_data; ? > ;
+    var pwconfig = <?php echo $api_data; ?>;
             (function (_, p, w, s, d, k) {
                 _.require ={baseUrl:s};
                 var pwscript = _.createElement("script");
@@ -24,5 +24,5 @@
                         });
                     }
                 }, 800);
-            })(document, 'script', "//staging-checkout.pipwave.com/sdk/", "pw.sdk.js", "lib/require.js", "pwscript");
+            })(document, 'script', <?php echo $url; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
 </script>

@@ -154,14 +154,14 @@ class ControllerPaymentPipwave extends Controller {
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
 
-        $data['more_info'] = [
+        $data['more_info'] = array(
             'step_title' => $this->language->get('step_title'),
             'step_sign_in' => $this->language->get('step_sign_in'),
             'step_sign_up' => $this->language->get('step_sign_up'),
             'step_setup' => $this->language->get('step_setup'),
             'step_configure' => $this->language->get('step_configure'),
             'step_more_info' => $this->language->get('step_more_info'),
-        ];
+        );
 
         $this->response->setOutput($this->load->view('payment/pipwave', $data));
     }
