@@ -86,11 +86,12 @@ class ControllerPaymentPipwave extends Controller {
         $this->load->language('payment/pipwave');
         $products = $this->cart->getProducts();
 
-        foreach ($products as $product) {
-            $data['item_info'][] = array(
-                'product_name' => $product['name'],
-                'quantity' => $product['quantity']
-            );
+        foreach ($products as $key => $product) {
+            $data["item_info.{$key}.name"] = $product['name'];
+            $data["item_info.{$key}.code"] = $product['product_id'];
+            $data["item_info.{$key}.quantity"] = $product['quantity'];
+            $data["item_info.{$key}.amount"] = $this->currency->format($product['price'], $order_info['currency_code'], $order_info['currency_value'], false);
+            $data["item_info.{$key}.currency_code"] = $order_info['currency_code'];
         }
 
         $pipwave_res = $this->_sendRequest($data);
