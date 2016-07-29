@@ -14,9 +14,10 @@
                 var pwscript = _.createElement("script");
                 pwscript.setAttribute('data-main', w + s);
                 pwscript.setAttribute('src', w + d);
+                pwscript.setAttribute('id', k);
                 setTimeout(function () {
                     var reqPwInit = (typeof reqPw != 'undefined');
-                    _.getElementById(k).parentNode.replaceChild(pwscript, _.getElementById('pwloading'));
+                    _.getElementById(k).parentNode.replaceChild(pwscript, _.getElementById(k));
                     if (reqPwInit) {
                         reqPw(['pw'], function (pw) {
                             pw.setOpt(pwconfig);
@@ -24,5 +25,5 @@
                         });
                     }
                 }, 800);
-            })(document, 'script', <?php echo $url; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
+            })(document, 'script', <?php echo '"' . $url . '"'; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
 </script>
