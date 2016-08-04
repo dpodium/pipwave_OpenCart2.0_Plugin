@@ -16,47 +16,66 @@ class ControllerPaymentPipwave extends Controller {
         $this->load->model('account/order');
 
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-
-        if (isset($this->session->data['guest'])) {
-            $email = $this->session->data['guest']['email'];
-            $telephone = $this->session->data['guest']['telephone'];
-        } else {
-            $email = $this->customer->getEmail();
-            $telephone = $this->customer->getTelephone();
-        }
-
         $data = array(
             'action' => 'initiate-payment',
+            'timestamp' => time(),
             'api_key' => $this->config->get('pipwave_api_key'),
             'txn_id' => $this->session->data['order_id'] . "",
             'amount' => $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false),
             'currency_code' => $order_info['currency_code'],
+            'short_description' => 'Payment for Order#' . $order_info['order_id'],
             'session_info' => array(
                 'ip_address' => $order_info['ip'],
                 'language' => $this->session->data['language'],
-            ),
-            'buyer_info' => array(
-                'id' => $email,
-                'email' => $email,
+            )
+        );
+
+        if (isset($this->session->data['guest'])) {
+            $data['buyer_info'] = array(
+                'email' => $this->session->data['guest']['email'],
+                'contact_no' => $this->session->data['guest']['telephone'],
                 'country_code' => $order_info['payment_iso_code_2'],
-            ),
-            'billing_info' => array(
-                'name' => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
-                'address1' => $order_info['payment_address_1'],
-                'address2' => $order_info['payment_address_2'],
-                'city' => $order_info['payment_city'],
-                'state' => $order_info['payment_zone'],
-                'zip' => $order_info['payment_postcode'],
-                'country' => $order_info['payment_country'],
-                'contact_no' => $telephone
-            ),
-            'short_description' => 'testing opencart pipwave',
-            'api_override' => array(
-                'success_url' => $this->url->link('checkout/success', '', true),
-                'fail_url' => $this->url->link('checkout/failure'),
-                'notification_url' => $this->url->link('payment/pipwave/callback', '', true),
-            ),
-            'timestamp' => time()
+            );
+        } else {
+            $this->load->model('account/address');
+            $buyer_address = $this->model_account_address->getAddress($this->customer->getAddressId());
+            $data['buyer_info'] = array(
+                'id' => $this->customer->getId(),
+                'email' => $this->customer->getEmail(),
+                'first_name' => $this->customer->getFirstName(),
+                'last_name' => $this->customer->getLastName(),
+                'contact_no' => $this->customer->getTelephone(),
+                'country_code' => $buyer_address['iso_code_2'],
+            );
+        }
+        $data['billing_info'] = array(
+            'name' => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
+            'address1' => $order_info['payment_address_1'],
+            'address2' => $order_info['payment_address_2'],
+            'city' => $order_info['payment_city'],
+            'state' => $order_info['payment_zone'],
+            'zip' => $order_info['payment_postcode'],
+            'country' => $order_info['payment_country'],
+            'contact_no' => $data['buyer_info']['contact_no'],
+            'email' => $data['buyer_info']['email'],
+        );
+
+        if ($this->cart->hasShipping()) {
+            $data['shipping_info'] = array(
+                'name' => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
+                'address1' => $order_info['shipping_address_1'],
+                'address2' => $order_info['shipping_address_2'],
+                'city' => $order_info['shipping_city'],
+                'state' => $order_info['shipping_zone'],
+                'zip' => $order_info['shipping_postcode'],
+                'country' => $order_info['shipping_country'],
+                'contact_no' => $data['buyer_info']['contact_no']
+            );
+        }
+        $data['api_override'] = array(
+            'success_url' => $this->url->link('checkout/success', '', true),
+            'fail_url' => $this->url->link('checkout/failure'),
+            'notification_url' => $this->url->link('payment/pipwave/callback', '', true),
         );
 
         $signatureParam = array(
@@ -70,28 +89,17 @@ class ControllerPaymentPipwave extends Controller {
         );
         $data['signature'] = $this->_generateSignature($signatureParam);
 
-        if ($this->cart->hasShipping()) {
-            $data['shipping_info'] = array(
-                'name' => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
-                'address1' => $order_info['shipping_address_1'],
-                'address2' => $order_info['shipping_address_2'],
-                'city' => $order_info['shipping_city'],
-                'state' => $order_info['shipping_zone'],
-                'zip' => $order_info['shipping_postcode'],
-                'country' => $order_info['shipping_country'],
-                'contact_no' => $telephone
-            );
-        }
-
         $this->load->language('payment/pipwave');
+        $this->load->model('catalog/product');
         $products = $this->cart->getProducts();
-
         foreach ($products as $key => $product) {
+            $product_info = $this->model_catalog_product->getProduct($product['product_id']);
             $data["item_info.{$key}.name"] = $product['name'];
-            $data["item_info.{$key}.code"] = $product['product_id'];
-            $data["item_info.{$key}.quantity"] = $product['quantity'];
+            $data["item_info.{$key}.description"] = $product['name'] . ' - ' . $product['model'];
             $data["item_info.{$key}.amount"] = $this->currency->format($product['price'], $order_info['currency_code'], $order_info['currency_value'], false);
             $data["item_info.{$key}.currency_code"] = $order_info['currency_code'];
+            $data["item_info.{$key}.quantity"] = $product['quantity'];
+            $data["item_info.{$key}.sku"] = $product_info['sku'];
         }
 
         $pipwave_res = $this->_sendRequest($data);
@@ -105,7 +113,7 @@ class ControllerPaymentPipwave extends Controller {
         } else {
             $view_data['url'] = "//checkout.pipwave.com/sdk/";
         }
-        
+
         if ($pipwave_res['status'] == 200) {
             $view_data['api_data'] = json_encode([
                 'api_key' => $this->config->get('pipwave_api_key'),
