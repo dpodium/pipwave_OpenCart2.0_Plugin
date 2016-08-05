@@ -32,6 +32,7 @@ class ControllerPaymentPipwave extends Controller {
 
         if (isset($this->session->data['guest'])) {
             $data['buyer_info'] = array(
+                'id' => $this->session->data['guest']['email'],
                 'email' => $this->session->data['guest']['email'],
                 'contact_no' => $this->session->data['guest']['telephone'],
                 'country_code' => $order_info['payment_iso_code_2'],
