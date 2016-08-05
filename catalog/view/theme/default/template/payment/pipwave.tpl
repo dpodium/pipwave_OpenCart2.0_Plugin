@@ -3,6 +3,7 @@
     <img src="admin/view/image/payment/pipwave.png">
     <hr />
 </div>
+<?php if (isset($api_data)) { ?>
 <div id="pwloading" class="text-center">
     <i class="fa fa-spinner fa-spin fa-fw margin-bottom" style="font-size: 3em; color: #7a7a7a;"></i>
     <span class="sr-only">Loading...</span>
@@ -27,3 +28,6 @@
                 }, 800);
             })(document, 'script', <?php echo '"' . $url . '"'; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
 </script>
+<?php } else { ?>
+    <?php echo isset($error) ? $error : "Error occured"; ?>
+<?php } ?>
