@@ -29,5 +29,5 @@
             })(document, 'script', <?php echo '"' . $url . '"'; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
 </script>
 <?php } else { ?>
-    <?php echo isset($error) ? $error : "Error occured"; ?>
+    <?php echo isset($error) ? (is_array($error) ? implode('; ', $error) : $error) : "Error occured"; ?>
 <?php } ?>
