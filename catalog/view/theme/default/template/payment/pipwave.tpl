@@ -10,23 +10,22 @@
 </div>
 <script type="text/javascript">
     var pwconfig = <?php echo $api_data; ?>;
-            (function (_, p, w, s, d, k) {
-                _.require ={baseUrl:s};
-                var pwscript = _.createElement("script");
-                pwscript.setAttribute('data-main', w + s);
-                pwscript.setAttribute('src', w + d);
-                pwscript.setAttribute('id', k);
-                setTimeout(function () {
-                    var reqPwInit = (typeof reqPw != 'undefined');
-                    _.getElementById(k).parentNode.replaceChild(pwscript, _.getElementById(k));
-                    if (reqPwInit) {
-                        reqPw(['pw'], function (pw) {
-                            pw.setOpt(pwconfig);
-                            pw.startLoad();
-                        });
-                    }
-                }, 800);
-            })(document, 'script', <?php echo '"' . $url . '"'; ?>, "pw.sdk.js", "lib/require.js", "pwscript");
+    (function (_, p, w, s, d, k) {
+        var a = _.createElement("script");
+        a.setAttribute('src', w + d);
+        a.setAttribute('id', k);
+        setTimeout(function() {
+            var reqPwInit = (typeof reqPipwave != 'undefined');
+            if (reqPwInit) {
+                reqPipwave.require(['pw'], function(pw) {
+                    pw.setOpt(pwconfig);
+                    pw.startLoad();
+                });
+            } else {
+                _.getElementById(k).parentNode.replaceChild(a, _.getElementById(k));
+            }
+        }, 800);
+    })(document, 'script', "//staging-checkout.pipwave.com/sdk/", "pw.sdk.min.js", "pw.sdk.min.js", "pwscript");
 </script>
 <?php } else { ?>
     <?php echo isset($error) ? (is_array($error) ? implode('; ', $error) : $error) : "Error occured"; ?>
