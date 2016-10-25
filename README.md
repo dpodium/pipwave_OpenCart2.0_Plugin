@@ -60,13 +60,14 @@ No. It's FREE.
 2. Go to **Development > Setting**.
 3. Copy and paste your API Key and API Secret into your **Store settings > pipwave Settings**.
 
-#### 4. pipwave Drupal Commerce Kickstart Plugin is awesome! Can I contribute?
+#### 4. How to impose processing fee on selected payment method in pipwave?
+
+If you would like to impose processing fee to your customers by group, kindly configure your customer group name as Reference ID in [Account > General](https://merchant.pipwave.com/account/set-processing-fee-group#general-processing-fee-group).
+
+
+#### 5. pipwave Drupal Commerce Kickstart Plugin is awesome! Can I contribute?
 
 Yes you can! Join in on our [GitHub repository](https://github.com/dpodium/pipwave_OpenCart2.0_Plugin/) :)
-
-Note:
------
-* If you would like to impose processing fee to your customers by group, kindly configure your customer group name as Reference ID in [Account > General](https://merchant.pipwave.com/account/set-processing-fee-group#general-processing-fee-group).
 
 Issues
 ------
