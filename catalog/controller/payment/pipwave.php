@@ -39,7 +39,9 @@ class ControllerPaymentPipwave extends Controller {
             );
         } else {
             $this->load->model('account/address');
+            $this->load->model('account/customer_group');
             $buyer_address = $this->model_account_address->getAddress($this->customer->getAddressId());
+            $customer_group = $this->model_account_customer_group->getCustomerGroup($this->customer->getGroupId());
             $data['buyer_info'] = array(
                 'id' => $this->customer->getId(),
                 'email' => $this->customer->getEmail(),
@@ -47,6 +49,7 @@ class ControllerPaymentPipwave extends Controller {
                 'last_name' => $this->customer->getLastName(),
                 'contact_no' => $this->customer->getTelephone(),
                 'country_code' => $buyer_address['iso_code_2'],
+                'surcharge_group' => isset($customer_group['name']) ? $customer_group['name'] : ''
             );
         }
         $data['billing_info'] = array(
@@ -138,13 +141,13 @@ class ControllerPaymentPipwave extends Controller {
         $post_data = json_decode($post_content, true);
         $timestamp = (isset($post_data['timestamp']) && !empty($post_data['timestamp'])) ? $post_data['timestamp'] : time();
         $pw_id = (isset($post_data['pw_id']) && !empty($post_data['pw_id'])) ? $post_data['pw_id'] : '';
-        $pw_status = (isset($post_data['pw_status']) && !empty($post_data['pw_status'])) ? $post_data['pw_status'] : '';
         $order_id = (isset($post_data['txn_id']) && !empty($post_data['txn_id'])) ? $post_data['txn_id'] : '';
         $amount = (isset($post_data['amount']) && !empty($post_data['amount'])) ? $post_data['amount'] : '';
         $currency_code = (isset($post_data['currency_code']) && !empty($post_data['currency_code'])) ? $post_data['currency_code'] : '';
         $transaction_status = (isset($post_data['transaction_status']) && !empty($post_data['transaction_status'])) ? $post_data['transaction_status'] : '';
+        $payment_method = isset($post_data['payment_method_title']) ? $post_data['payment_method_title'] : null;
         $signature = (isset($post_data['signature']) && !empty($post_data['signature'])) ? $post_data['signature'] : '';
-
+        
         $data_for_signature = array(
             'timestamp' => $timestamp,
             'api_key' => $this->config->get('pipwave_api_key'),
@@ -160,18 +163,27 @@ class ControllerPaymentPipwave extends Controller {
         if ($signature == $generatedSignature) {
             $this->load->model('checkout/order');
             $order_status_id = $this->config->get('config_order_status_id');
+            $with_warning_msg = ($post_data['status'] == 3001) ? " (with warning)" : '';
+            $comment = "Undefined transaction_status: {$transaction_status}";
 
-            if ($pw_status == 1) {
+            if ($transaction_status == 1) {
                 $order_status_id = $this->config->get('pipwave_failed_status_id');
-            } else if ($pw_status == 2) {
+                $comment = "Payment Status: Failed{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
+            } else if ($transaction_status == 2) {
                 $order_status_id = $this->config->get('pipwave_canceled_status_id');
-            } else if ($pw_status == 10) {
+                $comment = "Payment Status: Canceled{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
+            } else if ($transaction_status == 10) {
                 $order_status_id = $this->config->get('pipwave_complete_status_id');
-            } else if ($pw_status == 20) {
+                $comment = "Payment Status: Complete{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
+            } else if ($transaction_status == 20) {
                 $order_status_id = $this->config->get('pipwave_refund_status_id');
+                $comment = "Payment Status: Refunded{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
+            } else if ($transaction_status == 5 && !is_null($payment_method)) {
+                $comment = "Payment Status: Pending{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
+                $this->db->query("UPDATE `" . DB_PREFIX . "order` SET `payment_method` = '" . $payment_method . "' WHERE `order_id` = '" . (int) $order_id . "'");
             }
 
-            $this->model_checkout_order->addOrderHistory($order_id, $order_status_id);
+            $this->model_checkout_order->addOrderHistory($order_id, $order_status_id, $comment);
         }
     }
 

@@ -15,8 +15,8 @@ assistance, please email support@pipwave.com
 
 System Requirements
 --------------------
-PHP (at least 5.2) <br>
-Curl
+* PHP (at least 5.2)
+* Curl
 
 How to integrate OpenCart with pipwave
 -----------------------------------------
@@ -38,10 +38,38 @@ How to integrate OpenCart with pipwave
 
 7. Fill in your pipwave API Key & pipwave API Secret to the respective fields.
 
-8. Save the configuration and it's done!
+8. Turn on test mode if you would like to test pipwave API.
 
-**Please feel free to contact pipwave directly with any integration questions.**
+9. Save the configuration and it's done!
+
+
+Frequently Asked Questions
+--------------------------
+
+#### 1. How to set up your pipwave merchant account?
+
+Visit [pipwave Merchant Center](https://merchant.pipwave.com/site/signup/ "signup pipwave Merchant Center") and sign up pipwave merchant account.
+
+#### 2. Does it cost money to sign up a pipwave account?
+
+No. It's FREE.
+
+#### 3. How to get pipwave API Key and API Secret?
+
+1. Log in to [pipwave Merchant Center](https://merchant.pipwave.com/site/login/ "login pipwave Merchant Center").
+2. Go to **Development > Setting**.
+3. Copy and paste your API Key and API Secret into your **Store settings > pipwave Settings**.
+
+#### 4. pipwave Drupal Commerce Kickstart Plugin is awesome! Can I contribute?
+
+Yes you can! Join in on our [GitHub repository](https://github.com/dpodium/pipwave_OpenCart2.0_Plugin/) :)
+
+Note:
+-----
+* If you would like to impose processing fee to your customers by group, kindly configure your customer group name as Reference ID in [Account > General](https://merchant.pipwave.com/account/set-processing-fee-group#general-processing-fee-group).
 
 Issues
 ------
+Please feel free to contact pipwave directly with any integration questions.
+
 Submit issue to this repository or email to our support@pipwave.com
