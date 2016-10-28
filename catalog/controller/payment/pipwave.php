@@ -42,6 +42,7 @@ class ControllerPaymentPipwave extends Controller {
             $this->load->model('account/customer_group');
             $buyer_address = $this->model_account_address->getAddress($this->customer->getAddressId());
             $customer_group = $this->model_account_customer_group->getCustomerGroup($this->customer->getGroupId());
+            $processing_fee_ref = $this->config->get('pipwave_processing_fee_ref');
             $data['buyer_info'] = array(
                 'id' => $this->customer->getId(),
                 'email' => $this->customer->getEmail(),
@@ -49,9 +50,10 @@ class ControllerPaymentPipwave extends Controller {
                 'last_name' => $this->customer->getLastName(),
                 'contact_no' => $this->customer->getTelephone(),
                 'country_code' => $buyer_address['iso_code_2'],
-                'surcharge_group' => isset($customer_group['name']) ? $customer_group['name'] : ''
+                'surcharge_group' => isset($processing_fee_ref[$customer_group['customer_group_id']]) ? $processing_fee_ref[$customer_group['customer_group_id']] : ''
             );
         }
+        
         $data['billing_info'] = array(
             'name' => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
             'address1' => $order_info['payment_address_1'],
@@ -60,6 +62,7 @@ class ControllerPaymentPipwave extends Controller {
             'state' => $order_info['payment_zone'],
             'zip' => $order_info['payment_postcode'],
             'country' => $order_info['payment_country'],
+            'country_iso2' => $order_info['payment_iso_code_2'],
             'contact_no' => $data['buyer_info']['contact_no'],
             'email' => $data['buyer_info']['email'],
         );
@@ -73,6 +76,7 @@ class ControllerPaymentPipwave extends Controller {
                 'state' => $order_info['shipping_zone'],
                 'zip' => $order_info['shipping_postcode'],
                 'country' => $order_info['shipping_country'],
+                'country_iso2' => $order_info['shipping_iso_code_2'],
                 'contact_no' => $data['buyer_info']['contact_no']
             );
         }
@@ -164,7 +168,7 @@ class ControllerPaymentPipwave extends Controller {
             $this->load->model('checkout/order');
             $order_status_id = $this->config->get('config_order_status_id');
             $with_warning_msg = ($post_data['status'] == 3001) ? " (with warning)" : '';
-            $comment = "Undefined transaction_status: {$transaction_status}";
+            $comment = "Undefined transaction status {$transaction_status}";
 
             if ($transaction_status == 1) {
                 $order_status_id = $this->config->get('pipwave_failed_status_id');

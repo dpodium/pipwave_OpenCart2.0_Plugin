@@ -36,10 +36,13 @@ class ControllerPaymentPipwave extends Controller {
         $data['entry_status'] = $this->language->get('entry_status');
         $data['entry_geo_zone'] = $this->language->get('entry_geo_zone');
         $data['entry_test_mode'] = $this->language->get('entry_test_mode');
+        $data['entry_processing_fee_group'] = $this->language->get('entry_processing_fee_group');
+        $data['entry_processing_fee_ref'] = $this->language->get('entry_processing_fee_ref');
         $data['entry_sort_order'] = $this->language->get('entry_sort_order');
         // Tooltip
         $data['tooltip_api_key'] = $this->language->get('tooltip_api_key');
         $data['tooltip_api_secret'] = $this->language->get('tooltip_api_secret');
+        $data['tooltip_processing_fee_group'] = $this->language->get('tooltip_processing_fee_group');
         // Button text
         $data['button_save'] = $this->language->get('button_save');
         $data['button_cancel'] = $this->language->get('button_cancel');
@@ -60,6 +63,12 @@ class ControllerPaymentPipwave extends Controller {
             $data['error_api_secret'] = $this->error['api_secret'];
         } else {
             $data['error_api_secret'] = '';
+        }
+
+        if (isset($this->error['processing_fee_ref'])) {
+            $data['error_processing_fee_ref'] = $this->error['processing_fee_ref'];
+        } else {
+            $data['error_processing_fee_ref'] = '';
         }
 
         // Breadcrumbs
@@ -150,6 +159,20 @@ class ControllerPaymentPipwave extends Controller {
             $data['pipwave_test_mode'] = $this->config->get('pipwave_test_mode');
         }
 
+        $this->load->model('customer/customer_group');
+        $data['customer_groups'] = $this->model_customer_customer_group->getCustomerGroups();
+        if (isset($this->request->post['pipwave_processing_fee_groups'])) {
+            $data['pipwave_processing_fee_groups'] = $this->request->post['pipwave_processing_fee_groups'];
+        } else {
+            $data['pipwave_processing_fee_groups'] = $this->config->get('pipwave_processing_fee_groups');
+        }
+
+        if (isset($this->request->post['pipwave_processing_fee_ref'])) {
+            $data['pipwave_processing_fee_ref'] = $this->request->post['pipwave_processing_fee_ref'];
+        } else {
+            $data['pipwave_processing_fee_ref'] = $this->config->get('pipwave_processing_fee_ref');
+        }
+
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -177,6 +200,18 @@ class ControllerPaymentPipwave extends Controller {
 
         if (!$this->request->post['pipwave_api_secret']) {
             $this->error['api_secret'] = $this->language->get('error_api_secret');
+        }
+
+        if (isset($this->request->post['pipwave_processing_fee_groups'])) {
+            $pf_groups = $this->request->post['pipwave_processing_fee_groups'];
+            if ($pf_groups) {
+                foreach ($pf_groups as $i => $value) {
+                    if (!isset($this->request->post['pipwave_processing_fee_ref'][$i]) || empty($this->request->post['pipwave_processing_fee_ref'][$i])) {
+                        $this->error['processing_fee_ref'][$i] = $this->language->get('error_processing_fee_ref');
+                        break;
+                    }
+                }
+            }
         }
 
         return !$this->error;

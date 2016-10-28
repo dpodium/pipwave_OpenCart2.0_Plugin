@@ -21,14 +21,17 @@ $_['entry_refund_status'] = 'Order Refunded Status';
 $_['entry_canceled_status'] = 'Order Canceled Status';
 $_['entry_failed_status'] = 'Order Failed Status';
 $_['entry_geo_zone'] = 'Geo Zone';
+$_['entry_processing_fee_group'] = 'Processing Fee Group';
+$_['entry_processing_fee_ref'] = 'Reference ID';
 // Help
-$_['tooltip_api_key'] = 'API Key provided by pipwave.';
-$_['tooltip_api_secret'] = 'API Secret provided by pipwave.';
-
+$_['tooltip_api_key'] = "API Key provided by pipwave in <a href='https://merchant.pipwave.com/development-setting/index' target='_blank' style='text-decoration: underline;'>Development > Setting</a>.";
+$_['tooltip_api_secret'] = "API Secret provided by pipwave in <a href='https://merchant.pipwave.com/development-setting/index' target='_blank' style='text-decoration: underline;'>Development > Setting</a>.";
+$_['tooltip_processing_fee_group'] = "Create one or more groups to impose processing fee on selected payment method in pipwave <a href='https://merchant.pipwave.com/account/set-processing-fee-group#general-processing-fee-group' target='_blank' style='text-decoration: underline;'>Account > General</a>.<br>Reference ID will be passed in pipwave checkout API to indicate which processing fee group in effect.";
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify payment pipwave!';
 $_['error_api_key'] = 'pipwave API key cannot be blank';
 $_['error_api_secret'] = 'pipwave API secret cannot be blank';
+$_['error_processing_fee_ref'] = 'Reference ID cannot be blank if processing fee group is selected.';
 
 // Information
 $_['step_title'] = 'What you should do next:';

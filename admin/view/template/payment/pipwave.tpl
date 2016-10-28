@@ -27,10 +27,11 @@
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-pipwave" class="form-horizontal">
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-api">
-                            <span data-toggle="tooltip" title="<?php echo $tooltip_api_key; ?>"><?php echo $entry_api_key; ?></span>
+                            <?php echo $entry_api_key; ?>
                         </label>
                         <div class="col-sm-10">
                             <input type="text" name="pipwave_api_key" value="<?php echo $pipwave_api_key; ?>" id="input-api" class="form-control" />
+                            <div class="hint-block" style="color: #1E91CF; margin: 4px 0;"><?php echo $tooltip_api_key; ?></div>
                             <?php if ($error_api_key) { ?>
                             <div class="text-danger"><?php echo $error_api_key; ?></div>
                             <?php } ?>
@@ -38,10 +39,11 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-secret">
-                            <span data-toggle="tooltip" title="<?php echo $tooltip_api_secret; ?>"><?php echo $entry_api_secret; ?></span>
+                            <?php echo $entry_api_secret; ?>
                         </label>
                         <div class="col-sm-10">
                             <input type="password" name="pipwave_api_secret" value="<?php echo $pipwave_api_secret; ?>" id="input-secret" class="form-control" />
+                            <div class="hint-block" style="color: #1E91CF; margin: 4px 0;"><?php echo $tooltip_api_secret; ?></div>
                             <?php if ($error_api_secret) { ?>
                             <div class="text-danger"><?php echo $error_api_secret; ?></div>
                             <?php } ?>
@@ -167,6 +169,39 @@
                                 <?php echo $text_no; ?>
                                 <?php } ?>
                             </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">
+                            <?php echo $entry_processing_fee_group; ?>
+                        </label>
+                        <div class="col-sm-10">
+                            <?php foreach ($customer_groups as $customer_group) { ?>
+                            <div class='row'>
+                                <div class="col-sm-6">
+                                    <div class="checkbox">
+                                        <label>
+                                            <?php if (isset($pipwave_processing_fee_groups[$customer_group['customer_group_id']])) { ?>
+                                            <input type="checkbox" name="pipwave_processing_fee_groups[<?php echo $customer_group['customer_group_id']; ?>]" value="<?php echo $customer_group['name']; ?>" checked />
+                                            <?php } else { ?>
+                                            <input type="checkbox" name="pipwave_processing_fee_groups[<?php echo $customer_group['customer_group_id']; ?>]" value="<?php echo $customer_group['name']; ?>" />
+                                            <?php } ?>
+                                            <?php echo $customer_group['name']; ?>
+                                        </label>
+                                    </div>
+                                </div>                            
+                            </div>
+                            <div class='form-group row' style='padding-top: 0; padding-bottom: 0;'>
+                                <div class="col-sm-6">
+                                    <label class='control-label'><?php echo $entry_processing_fee_ref; ?></label>
+                                    <input type="text" name="pipwave_processing_fee_ref[<?php echo $customer_group['customer_group_id']; ?>]" value="<?php echo $pipwave_processing_fee_ref[$customer_group['customer_group_id']]; ?>" class="form-control" />                            
+                                    <?php if (isset($error_processing_fee_ref[$customer_group['customer_group_id']])) { ?>
+                                    <div class="text-danger"><?php echo $error_processing_fee_ref[$customer_group['customer_group_id']]; ?></div>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <?php } ?>
+                            <div class="hint-block" style="color: #1E91CF; margin: 4px 0;"><?php echo $tooltip_processing_fee_group; ?></div>
                         </div>
                     </div>
                     <div class="form-group">
