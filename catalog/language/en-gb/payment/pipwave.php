@@ -8,6 +8,6 @@
  * @version 1.0
  */
 // Text
-$_['text_title'] = 'pipwave';
+$_['text_title'] = '<img src="admin/view/image/payment/pipwave.png" alt="pipwave" title="pipwave" />';
 $_['text_pay_via'] = 'Pay via:';
 
