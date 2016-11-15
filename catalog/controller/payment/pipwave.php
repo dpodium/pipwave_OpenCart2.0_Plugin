@@ -209,6 +209,7 @@ class ControllerPaymentPipwave extends Controller {
         }
         $agent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)";
         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('x-api-key' => $this->config->get('pipwave_api_key')));
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_URL, $url);
