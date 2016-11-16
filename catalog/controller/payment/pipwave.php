@@ -141,6 +141,7 @@ class ControllerPaymentPipwave extends Controller {
     }
 
     public function callback() {
+        echo "OK";
         $post_content = file_get_contents("php://input");
         $post_data = json_decode($post_content, true);
         $timestamp = (isset($post_data['timestamp']) && !empty($post_data['timestamp'])) ? $post_data['timestamp'] : time();
