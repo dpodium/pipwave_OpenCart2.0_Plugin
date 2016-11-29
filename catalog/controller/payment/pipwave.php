@@ -128,7 +128,7 @@ class ControllerPaymentPipwave extends Controller {
             $view_data['api_data'] = json_encode([
                 'api_key' => $this->config->get('pipwave_api_key'),
                 'token' => $pipwave_res['token'],
-                'caller_version' => 'OpenCart v' . VERSION
+                'caller_version' => 'OpenCart_v' . VERSION
             ]);
         } else {
             $view_data['error'] = $pipwave_res['message'];
