@@ -18,6 +18,7 @@ $_['entry_test_mode'] = 'Test';
 $_['entry_order_status'] = 'Order Status';
 $_['entry_complete_status'] = 'Order Paid Status';
 $_['entry_refund_status'] = 'Order Refunded Status';
+$_['entry_partial_refund_status'] = 'Order Partial Refunded Status';
 $_['entry_canceled_status'] = 'Order Canceled Status';
 $_['entry_failed_status'] = 'Order Failed Status';
 $_['entry_geo_zone'] = 'Geo Zone';

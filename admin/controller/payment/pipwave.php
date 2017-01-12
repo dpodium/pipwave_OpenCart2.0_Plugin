@@ -32,6 +32,7 @@ class ControllerPaymentPipwave extends Controller {
         $data['entry_complete_status'] = $this->language->get('entry_complete_status');
         $data['entry_failed_status'] = $this->language->get('entry_failed_status');
         $data['entry_refund_status'] = $this->language->get('entry_refund_status');
+        $data['entry_partial_refund_status'] = $this->language->get('entry_partial_refund_status');
         $data['entry_canceled_status'] = $this->language->get('entry_canceled_status');
         $data['entry_status'] = $this->language->get('entry_status');
         $data['entry_geo_zone'] = $this->language->get('entry_geo_zone');
@@ -123,6 +124,12 @@ class ControllerPaymentPipwave extends Controller {
             $data['pipwave_refund_status_id'] = $this->request->post['pipwave_refund_status_id'];
         } else {
             $data['pipwave_refund_status_id'] = $this->config->get('pipwave_refund_status_id');
+        }
+
+        if (isset($this->request->post['pipwave_partial_refund_status_id'])) {
+            $data['pipwave_partial_refund_status_id'] = $this->request->post['pipwave_partial_refund_status_id'];
+        } else {
+            $data['pipwave_partial_refund_status_id'] = $this->config->get('pipwave_partial_refund_status_id');
         }
 
         if (isset($this->request->post['pipwave_canceled_status_id'])) {

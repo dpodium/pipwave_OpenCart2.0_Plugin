@@ -9,6 +9,23 @@
  */
 class ControllerPaymentPipwave extends Controller {
 
+    public $api_url;
+    public $sdk_url;
+    public $loading_img;
+    
+    public function __construct($registry) {
+        parent::__construct($registry);
+        if($this->config->get('pipwave_test_mode') == '1') {
+            $this->api_url = 'https://staging-api.pipwave.com/payment';
+            $this->sdk_url = '//staging-checkout.pipwave.com/sdk/';
+            $this->loading_img = '//staging-checkout.pipwave.com/images/loading.gif';
+        } else {
+            $this->api_url = 'https://api.pipwave.com/payment';
+            $this->sdk_url = '//secure.pipwave.com/sdk/';
+            $this->loading_img = '//secure.pipwave.com/images/loading.gif';
+        }
+    }
+
     public function index() {
         $data['button_confirm'] = $this->language->get('button_confirm');
 
@@ -16,6 +33,7 @@ class ControllerPaymentPipwave extends Controller {
         $this->load->model('account/order');
 
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
+        $caller_version = 'OpenCart_v' . VERSION;
         $data = array(
             'action' => 'initiate-payment',
             'timestamp' => time(),
@@ -27,8 +45,10 @@ class ControllerPaymentPipwave extends Controller {
             'session_info' => array(
                 'ip_address' => $order_info['ip'],
                 'language' => $this->session->data['language'],
-            )
+            ),
+            'version' => $caller_version,
         );
+        $data['tax_exempted_amount'] = $data['amount'];
 
         if (isset($this->session->data['guest'])) {
             $data['buyer_info'] = array(
@@ -53,7 +73,7 @@ class ControllerPaymentPipwave extends Controller {
                 'surcharge_group' => isset($processing_fee_ref[$customer_group['customer_group_id']]) ? $processing_fee_ref[$customer_group['customer_group_id']] : ''
             );
         }
-        
+
         $data['billing_info'] = array(
             'name' => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
             'address1' => $order_info['payment_address_1'],
@@ -63,8 +83,6 @@ class ControllerPaymentPipwave extends Controller {
             'zip' => $order_info['payment_postcode'],
             'country' => $order_info['payment_country'],
             'country_iso2' => $order_info['payment_iso_code_2'],
-            'contact_no' => $data['buyer_info']['contact_no'],
-            'email' => $data['buyer_info']['email'],
         );
 
         if ($this->cart->hasShipping()) {
@@ -77,7 +95,6 @@ class ControllerPaymentPipwave extends Controller {
                 'zip' => $order_info['shipping_postcode'],
                 'country' => $order_info['shipping_country'],
                 'country_iso2' => $order_info['shipping_iso_code_2'],
-                'contact_no' => $data['buyer_info']['contact_no']
             );
         }
         $data['api_override'] = array(
@@ -115,20 +132,15 @@ class ControllerPaymentPipwave extends Controller {
         $pipwave_res = $this->_sendRequest($data);
         $view_data = array(
             'text_pay_via' => $this->language->get('text_pay_via'),
-            'status' => $pipwave_res['status']
+            'url' => $this->sdk_url,
+            'loading_img' => $this->loading_img
         );
 
-        if ($this->config->get('pipwave_test_mode') == '1') {
-            $view_data['url'] = "//staging-checkout.pipwave.com/sdk/";
-        } else {
-            $view_data['url'] = "//checkout.pipwave.com/sdk/";
-        }
-
-        if ($pipwave_res['status'] == 200) {
+        if (isset($pipwave_res['status']) && $pipwave_res['status'] == 200) {
             $view_data['api_data'] = json_encode([
                 'api_key' => $this->config->get('pipwave_api_key'),
                 'token' => $pipwave_res['token'],
-                'caller_version' => 'OpenCart_v' . VERSION
+                'caller_version' => $caller_version
             ]);
         } else {
             $view_data['error'] = $pipwave_res['message'];
@@ -142,6 +154,7 @@ class ControllerPaymentPipwave extends Controller {
     }
 
     public function callback() {
+        header('HTTP/1.1 200 OK');
         echo "OK";
         $post_content = file_get_contents("php://input");
         $post_data = json_decode($post_content, true);
@@ -149,11 +162,16 @@ class ControllerPaymentPipwave extends Controller {
         $pw_id = (isset($post_data['pw_id']) && !empty($post_data['pw_id'])) ? $post_data['pw_id'] : '';
         $order_id = (isset($post_data['txn_id']) && !empty($post_data['txn_id'])) ? $post_data['txn_id'] : '';
         $amount = (isset($post_data['amount']) && !empty($post_data['amount'])) ? $post_data['amount'] : '';
+        $final_amount = (isset($post_data['final_amount']) && !empty($post_data['final_amount'])) ? $post_data['final_amount'] : '';
         $currency_code = (isset($post_data['currency_code']) && !empty($post_data['currency_code'])) ? $post_data['currency_code'] : '';
         $transaction_status = (isset($post_data['transaction_status']) && !empty($post_data['transaction_status'])) ? $post_data['transaction_status'] : '';
         $payment_method = isset($post_data['payment_method_title']) ? $post_data['payment_method_title'] : null;
         $signature = (isset($post_data['signature']) && !empty($post_data['signature'])) ? $post_data['signature'] : '';
-        
+        // AFT Status
+        $aft_status = isset($post_data['aft_status']) ? $post_data['aft_status'] : '';
+        $aft_score = isset($post_data['aft_score']) ? $post_data['aft_score'] : '';
+        $message = isset($post_data['message']) ? $post_data['message'] : '';
+
         $data_for_signature = array(
             'timestamp' => $timestamp,
             'api_key' => $this->config->get('pipwave_api_key'),
@@ -164,33 +182,85 @@ class ControllerPaymentPipwave extends Controller {
             'transaction_status' => $transaction_status,
             'api_secret' => $this->config->get('pipwave_api_secret'),
         );
+
+        $comment = array(
+            sprintf("Paid with: %s", $payment_method),
+            "pipwave Transaction ID: {$pw_id}"
+        );
         $generatedSignature = $this->_generateSignature($data_for_signature);
-
-        if ($signature == $generatedSignature) {
-            $this->load->model('checkout/order');
-            $order_status_id = $this->config->get('config_order_status_id');
-            $with_warning_msg = ($post_data['status'] == 3001) ? " (with warning)" : '';
-            $comment = "Undefined transaction status {$transaction_status}";
-
-            if ($transaction_status == 1) {
-                $order_status_id = $this->config->get('pipwave_failed_status_id');
-                $comment = "Payment Status: Failed{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
-            } else if ($transaction_status == 2) {
-                $order_status_id = $this->config->get('pipwave_canceled_status_id');
-                $comment = "Payment Status: Canceled{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
-            } else if ($transaction_status == 10) {
-                $order_status_id = $this->config->get('pipwave_complete_status_id');
-                $comment = "Payment Status: Complete{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
-            } else if ($transaction_status == 20) {
-                $order_status_id = $this->config->get('pipwave_refund_status_id');
-                $comment = "Payment Status: Refunded{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
-            } else if ($transaction_status == 5 && !is_null($payment_method)) {
-                $comment = "Payment Status: Pending{$with_warning_msg}; pipwave Transaction ID: {$pw_id}";
-                $this->db->query("UPDATE `" . DB_PREFIX . "order` SET `payment_method` = '" . $payment_method . "' WHERE `order_id` = '" . (int) $order_id . "'");
-            }
-
-            $this->model_checkout_order->addOrderHistory($order_id, $order_status_id, $comment);
+        if ($signature != $generatedSignature) {
+            $transaction_status = -1;
         }
+        $orderStatus = $this->_getOrderStatus($transaction_status, $post_data['status']);
+        $comment[] = $orderStatus['comment'];
+        $order_status_id = $orderStatus['order_status_id'];
+        if ($transaction_status != -1) {
+            $this->load->model('checkout/order');
+            $order_info = $this->model_checkout_order->getOrder($order_id);
+            if ($order_info) {
+                if (in_array($transaction_status, array(10, 20, 25))) {
+                    $comment[] = sprintf("Currency: %s", $currency_code);
+                    $comment[] = sprintf("Final Amount: %s", $final_amount);
+                }
+                if ($amount != $order_info['total']) {
+                    $comment[] = "Amount mismatch";
+                }
+                if ($currency_code != $order_info['currency_code']) {
+                    $comment[] = "Currency mismatch";
+                }
+                if (!empty($aft_status) && !empty($aft_score)) {
+                    $comment[] = sprintf("AFT Status: %s", $aft_status);
+                    $comment[] = sprintf("AFT Score: %s", $aft_score);
+                }
+                if (!empty($message)) {
+                    $comment[] = sprintf("pipwave Message: %s", $message);
+                }
+            } else {
+                $comment[] = "Invalid order";
+            }
+        }
+
+        if ($transaction_status == 5 && !is_null($payment_method)) {
+            $this->db->query("UPDATE `" . DB_PREFIX . "order` SET `payment_method` = '" . $payment_method . "' WHERE `order_id` = '" . (int) $order_id . "'");
+        }
+        $this->model_checkout_order->addOrderHistory($order_id, $order_status_id, implode("\n", $comment));
+    }
+
+    private function _getOrderStatus($transaction_status, $api_status) {
+        $with_warning_msg = ($api_status == 3001) ? " (with warning)" : '';
+        $order_status_id = $this->config->get('config_order_status_id');
+        switch ($transaction_status) {
+            case 5: // pending
+                $note = "Payment Status: Pending$with_warning_msg";
+                break;
+            case 1: // failed
+                $note = "Payment Status: Failed$with_warning_msg";
+                $order_status_id = $this->config->get('pipwave_failed_status_id');
+                break;
+            case 2: // cancelled
+                $note = "Payment Status: Cancelled$with_warning_msg";
+                $order_status_id = $this->config->get('pipwave_canceled_status_id');
+                break;
+            case 10: // complete
+                $note = "Payment Status: Completed$with_warning_msg";
+                $order_status_id = $this->config->get('pipwave_complete_status_id');
+                break;
+            case 20: // refunded
+                $note = "Payment Status: Refunded$with_warning_msg";
+                $order_status_id = $this->config->get('pipwave_refund_status_id');
+                break;
+            case 25: // partial refunded
+                $note = "Payment Status: Partial Refunded$with_warning_msg";
+                $order_status_id = $this->config->get('pipwave_partial_refund_status_id');
+                break;
+            case -1: // signature mismatch
+                $note = "Signature mismatch";
+                break;
+            default:
+                $note = "Unknown payment status";
+        }
+
+        return array('comment' => $note, 'order_status_id' => $order_status_id);
     }
 
     private function _generateSignature($array) {
@@ -203,18 +273,12 @@ class ControllerPaymentPipwave extends Controller {
     }
 
     private function _sendRequest($data) {
-        // test mode is on
-        if ($this->config->get('pipwave_test_mode') == '1') {
-            $url = "https://staging-api.pipwave.com/payment";
-        } else {
-            $url = "https://api.pipwave.com/payment";
-        }
         $agent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('x-api-key' => $this->config->get('pipwave_api_key')));
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_URL, $this->api_url);
         curl_setopt($ch, CURLOPT_VERBOSE, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
