@@ -12,10 +12,10 @@ class ControllerPaymentPipwave extends Controller {
     public $api_url;
     public $sdk_url;
     public $loading_img;
-    
+
     public function __construct($registry) {
         parent::__construct($registry);
-        if($this->config->get('pipwave_test_mode') == '1') {
+        if ($this->config->get('pipwave_test_mode') == '1') {
             $this->api_url = 'https://staging-api.pipwave.com/payment';
             $this->sdk_url = '//staging-checkout.pipwave.com/sdk/';
             $this->loading_img = '//staging-checkout.pipwave.com/images/loading.gif';
@@ -167,9 +167,9 @@ class ControllerPaymentPipwave extends Controller {
         $transaction_status = (isset($post_data['transaction_status']) && !empty($post_data['transaction_status'])) ? $post_data['transaction_status'] : '';
         $payment_method = isset($post_data['payment_method_title']) ? $post_data['payment_method_title'] : null;
         $signature = (isset($post_data['signature']) && !empty($post_data['signature'])) ? $post_data['signature'] : '';
-        // AFT Status
-        $aft_status = isset($post_data['aft_status']) ? $post_data['aft_status'] : '';
-        $aft_score = isset($post_data['aft_score']) ? $post_data['aft_score'] : '';
+        // pipwave risk execution result
+        $pipwave_score = isset($post_data['pipwave_score']) ? $post_data['pipwave_score'] : '';
+        $rule_action = isset($post_data['rules_action']) ? $post_data['rules_action'] : '';
         $message = isset($post_data['message']) ? $post_data['message'] : '';
 
         $data_for_signature = array(
@@ -208,9 +208,9 @@ class ControllerPaymentPipwave extends Controller {
                 if ($currency_code != $order_info['currency_code']) {
                     $comment[] = "Currency mismatch";
                 }
-                if (!empty($aft_status) && !empty($aft_score)) {
-                    $comment[] = sprintf("AFT Status: %s", $aft_status);
-                    $comment[] = sprintf("AFT Score: %s", $aft_score);
+                if (!empty($rule_action) && !empty($pipwave_score)) {
+                    $comment[] = sprintf("Rule Action: %s", $rule_action);
+                    $comment[] = sprintf("pipwave Score: %s", $pipwave_score);
                 }
                 if (!empty($message)) {
                     $comment[] = sprintf("pipwave Message: %s", $message);

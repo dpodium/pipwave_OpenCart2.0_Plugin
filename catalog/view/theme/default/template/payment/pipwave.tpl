@@ -12,7 +12,6 @@
     (function (_, p, w, s, d, k) {
         var a = _.createElement("script");
         a.setAttribute("src", w + d);
-        a.setAttribute("data-main", w + s);
         a.setAttribute("id", k);
         setTimeout(function () {
             var reqPwInit = (typeof reqPipwave != "undefined");
