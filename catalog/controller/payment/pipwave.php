@@ -49,6 +49,12 @@ class ControllerPaymentPipwave extends Controller {
             'version' => $caller_version,
         );
         $data['tax_exempted_amount'] = $data['amount'];
+        
+        if (isset($this->session->data['shipping_methods'])) {
+            $shipping_code = explode('.', $order_info['shipping_code']);
+            $shipping_amount = $this->session->data['shipping_methods'][$shipping_code[0]]['quote'][$shipping_code[1]]['cost'];
+            $data['shipping_amount'] = $shipping_amount;
+        }
 
         if (isset($this->session->data['guest'])) {
             $data['buyer_info'] = array(
@@ -118,11 +124,13 @@ class ControllerPaymentPipwave extends Controller {
         $this->load->model('catalog/product');
         $products = $this->cart->getProducts();
         foreach ($products as $key => $product) {
+            $tax = $this->cart->tax->getTax($product['price'], $product['tax_class_id']);
+            $product_amount = $product['price'] + $tax;
             $product_info = $this->model_catalog_product->getProduct($product['product_id']);
             $data['item_info'][] = array(
                 "name" => $product['name'],
                 "description" => $product['name'] . ' - ' . $product['model'],
-                "amount" => $this->currency->format($product['price'], $order_info['currency_code'], $order_info['currency_value'], false),
+                "amount" => $this->currency->format($product_amount, $order_info['currency_code'], $order_info['currency_value'], false),
                 "currency_code" => $order_info['currency_code'],
                 "quantity" => $product['quantity'],
                 "sku" => $product_info['sku']
