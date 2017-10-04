@@ -5,7 +5,8 @@ pipwave Plugin for OpenCart Shopping Cart developed by pipwave development team.
 Supported version
 -----------------
 New Update
-- OpenCart version 2.x
+- OpenCart version 2.2.0.0 and above
+- For OpenCart version below 2.2.0.0, follow updating OpenCart <a href="http://docs.opencart.com/upgrading/" target="_update">guide </a>
 
 Notes
 -----
