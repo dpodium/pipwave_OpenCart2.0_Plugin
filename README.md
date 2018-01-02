@@ -6,7 +6,7 @@ Supported version
 -----------------
 New Update
 - OpenCart version 2.2.0.0 and above
-- For OpenCart version below 2.2.0.0, follow updating OpenCart <a href="http://docs.opencart.com/upgrading/" target="_update">guide </a>
+- For OpenCart version v3.0, please visit <a href="https://github.com/dpodium/pipwave_OpenCart3.0_Plugin" target="_update">Opencart V3.0 plugin</a>
 
 Notes
 -----
@@ -21,11 +21,9 @@ System Requirements
 
 How to integrate OpenCart with pipwave
 -----------------------------------------
-1. Download pipwave module from https://github.com/dpodium/pipwave_OpenCart2.0_Plugin folder or clone this repository. Copy all the file and paste it at your opencart root directory.  
-`<OpenCart_DIR>/admin/*`  
-`<OpenCart_DIR>/catalog/*`
+1. Download pipwave module from https://github.com/dpodium/pipwave_OpenCart2.0_Plugin folder or clone this repository.
 
-2. Upload all the files to your OpenCart root directory.
+2. Upload all the files to your OpenCart root directory. <br/>
 `<OpenCart_DIR>/admin/*`  
 `<OpenCart_DIR>/catalog/*`
 
@@ -66,7 +64,7 @@ No. It's FREE.
 If you would like to impose processing fee to your customers by group, kindly configure your customer group name as Reference ID in [Account > General](https://merchant.pipwave.com/account/set-processing-fee-group#general-processing-fee-group).
 
 
-#### 5. pipwave Drupal Commerce Kickstart Plugin is awesome! Can I contribute?
+#### 5. pipwave OpenCart Shopping Cart Plugin is awesome! Can I contribute?
 
 Yes you can! Join in on our [GitHub repository](https://github.com/dpodium/pipwave_OpenCart2.0_Plugin/) :)
 
